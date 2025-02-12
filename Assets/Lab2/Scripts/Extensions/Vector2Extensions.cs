@@ -6,7 +6,7 @@ public static class Vector2Extensions
 {
     public static bool IsPointOverUIObject(this Vector2 pos)
     {
-        if (EventSystem.current.IsPointerOverGameObject())
+        if (!EventSystem.current.IsPointerOverGameObject())
         {
             return false;
         }
