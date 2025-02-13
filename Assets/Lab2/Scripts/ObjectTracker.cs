@@ -48,6 +48,10 @@ namespace Lab2
             }
 
             Vector3 viewportPosition = _mainCamera.WorldToViewportPoint(obj.transform.position);
+            Debug.Log(viewportPosition);
+            Debug.Log(viewportPosition.x >= 0 && viewportPosition.x <= 1 &&
+                   viewportPosition.y >= 0 && viewportPosition.y <= 1 &&
+                   viewportPosition.z > 0);
             return viewportPosition.x >= 0 && viewportPosition.x <= 1 &&
                    viewportPosition.y >= 0 && viewportPosition.y <= 1 &&
                    viewportPosition.z > 0;

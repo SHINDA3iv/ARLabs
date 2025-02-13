@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 namespace Lab2
@@ -7,10 +8,10 @@ namespace Lab2
     {
         public static ArrowIndicator Instance { get; private set; }
 
-        [SerializeField] private GameObject[] _arrowPrefabs; // Префабы стрелок для каждого типа
-        private Dictionary<GameObject, GameObject> _arrows = new Dictionary<GameObject, GameObject>();
+        [SerializeField] private GameObject[] _arrows; // Готовые стрелки
 
         private Camera _mainCamera;
+        private Dictionary<GameObject, GameObject> _activeArrows = new Dictionary<GameObject, GameObject>();
 
         private void Awake()
         {
@@ -21,57 +22,84 @@ namespace Lab2
             else
             {
                 Destroy(gameObject);
+                return;
             }
 
             _mainCamera = Camera.main;
+
+            if (_arrows == null || _arrows.Length == 0)
+            {
+                Debug.LogError("Массив _arrows пуст или не назначен!");
+            }
         }
 
         private void Update()
         {
             var trackedObjects = ObjectTracker.Instance.GetCreatedObjects();
 
+            // Удаляем стрелки для объектов, которые больше не отслеживаются
+            List<GameObject> objectsToRemove = new List<GameObject>();
+            foreach (var tracked in _activeArrows.Keys)
+            {
+                if (!trackedObjects.ContainsKey(tracked))
+                {
+                    _activeArrows[tracked].SetActive(false);
+                    objectsToRemove.Add(tracked);
+                }
+            }
+            foreach (var obj in objectsToRemove)
+            {
+                _activeArrows.Remove(obj);
+            }
+
+            // Обновляем отображение стрелок
             foreach (var obj in trackedObjects.Keys)
             {
-                if (!ObjectTracker.Instance.IsObjectVisible(obj))
+                if (!_activeArrows.ContainsKey(obj))
                 {
                     ShowArrow(obj);
                 }
-                else
+
+                bool isVisible = ObjectTracker.Instance.IsObjectVisible(obj);
+                if (!isVisible && !_activeArrows[obj].activeSelf)
                 {
-                    HideArrow(obj);
+                    Debug.Log($"Объект {obj.name} невидим. Показываем стрелку.");
+                    _activeArrows[obj].SetActive(true);
                 }
+                else if (isVisible && _activeArrows[obj].activeSelf)
+                {
+                    Debug.Log($"Объект {obj.name} видим. Скрываем стрелку.");
+                    _activeArrows[obj].SetActive(false);
+                }
+
+                UpdateArrowPosition(obj);
             }
         }
 
         private void ShowArrow(GameObject target)
         {
-            if (!_arrows.ContainsKey(target))
+            GameObject arrow = GetArrowForObject(target);
+            if (arrow == null)
             {
-                GameObject arrow = Instantiate(GetArrowPrefab(target), transform);
-                _arrows[target] = arrow;
+                Debug.LogError($"Не найдена стрелка для {target.name}");
+                return;
             }
+
+            _activeArrows[target] = arrow;
+            arrow.SetActive(true);
 
             UpdateArrowPosition(target);
-            _arrows[target].SetActive(true);
-        }
-
-        private void HideArrow(GameObject target)
-        {
-            if (_arrows.ContainsKey(target))
-            {
-                _arrows[target].SetActive(false);
-            }
         }
 
         private void UpdateArrowPosition(GameObject target)
         {
-            if (!_arrows.ContainsKey(target)) return;
+            if (!_activeArrows.ContainsKey(target)) return;
 
             Vector3 targetScreenPos = _mainCamera.WorldToScreenPoint(target.transform.position);
 
-            // Если объект позади камеры, направляем стрелку вперед
             if (targetScreenPos.z < 0)
             {
+                targetScreenPos.z = 0.1f;
                 targetScreenPos.x = Screen.width - targetScreenPos.x;
                 targetScreenPos.y = Screen.height - targetScreenPos.y;
             }
@@ -79,27 +107,47 @@ namespace Lab2
             Vector3 screenCenter = new Vector3(Screen.width / 2, Screen.height / 2, 0);
             Vector3 direction = (targetScreenPos - screenCenter).normalized;
 
-            // Ограничиваем стрелку краем экрана
-            float arrowDistance = Screen.height / 2 * 0.9f;
+            float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
+
+            float arrowDistance;
+            if (Mathf.Abs(angle) < 120 && Mathf.Abs(angle) > 60)
+            {
+                arrowDistance = Screen.height / 2 * 0.9f;
+            }
+            else
+            {
+                arrowDistance = Screen.width / 2 * 0.9f;
+            }
+
+            // Позиция стрелки с ограничением по экранам
             Vector3 arrowPos = screenCenter + direction * arrowDistance;
 
-            _arrows[target].transform.position = arrowPos;
-            _arrows[target].transform.rotation = Quaternion.LookRotation(Vector3.forward, direction);
+            // Ограничиваем позицию стрелки в пределах экрана
+            arrowPos.x = Mathf.Clamp(arrowPos.x, 0, Screen.width);
+            arrowPos.y = Mathf.Clamp(arrowPos.y, 0, Screen.height);
+
+            GameObject arrow = _activeArrows[target];
+            arrow.transform.position = arrowPos;
+
+            // Поворот
+            arrow.transform.rotation = Quaternion.Euler(0, 0, angle);
+            Debug.Log(angle);
         }
 
-        private GameObject GetArrowPrefab(GameObject target)
+
+        private GameObject GetArrowForObject(GameObject target)
         {
             if (target.CompareTag("RedCube"))
             {
-                return _arrowPrefabs[0];
+                return _arrows.Length > 0 ? _arrows[0] : null;
             }
-            else if (target.CompareTag("BlueSphere"))
+            else if (target.CompareTag("GreenSphere"))
             {
-                return _arrowPrefabs[1];
+                return _arrows.Length > 1 ? _arrows[1] : null;
             }
-            else if (target.CompareTag("GreenCylinder"))
+            else if (target.CompareTag("BlueCylinder"))
             {
-                return _arrowPrefabs[2];
+                return _arrows.Length > 2 ? _arrows[2] : null;
             }
 
             return null;

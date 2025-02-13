@@ -109,15 +109,25 @@ namespace Lab2
                 return;
             }
 
+            Vector3 spawnPosition = InteractionManager.Instance.GetARRaycastHits(touch.position)[0].pose.position;
             GameObject spawnedObject = Instantiate(
                 original: _spawnedObjectPrefabs[_spawnedObjectType],
-                position: InteractionManager.Instance.GetARRaycastHits(touch.position)[0].pose.position,
+                position: spawnPosition,
                 rotation: _spawnedObjectPrefabs[_spawnedObjectType].transform.rotation
             );
 
             ObjectTracker.Instance.RegisterObject(spawnedObject);
 
+            UpdateCoordinateText(_spawnedObjectType, spawnPosition);
             DisableSpawnButton(_spawnedObjectType);
+        }
+
+        private void UpdateCoordinateText(int objectType, Vector3 position)
+        {
+            if (objectType < _coordinateTexts.Count)
+            {
+                _coordinateTexts[objectType].text = $"Position: ({position.x:F2}, {position.y:F2}, {position.z:F2})";
+            }
         }
 
         private void DisableSpawnButton(int objectType)
@@ -140,17 +150,11 @@ namespace Lab2
 
         private TextMeshProUGUI CreateCoordinateText(Transform buttonTransform)
         {
-            // Создаем новый объект для текста
             GameObject textObject = new GameObject("CoordinateText");
-
-            // Получаем родительский объект кнопки (обычно это Content объект ScrollView)
             Transform parent = buttonTransform.parent;
-
-            // Вставляем текстовый объект в ту же позицию в иерархии, где находится кнопка
             textObject.transform.SetParent(parent, false);
             textObject.transform.SetSiblingIndex(buttonTransform.GetSiblingIndex());
 
-            // Копируем RectTransform параметры кнопки
             RectTransform buttonRect = buttonTransform.GetComponent<RectTransform>();
             RectTransform textRect = textObject.AddComponent<RectTransform>();
             textRect.anchorMin = buttonRect.anchorMin;
@@ -159,7 +163,6 @@ namespace Lab2
             textRect.anchoredPosition = buttonRect.anchoredPosition;
             textRect.sizeDelta = buttonRect.sizeDelta;
 
-            // Добавляем компонент TextMeshProUGUI
             TextMeshProUGUI textComponent = textObject.AddComponent<TextMeshProUGUI>();
             textComponent.fontSize = 20;
             textComponent.color = Color.white;
