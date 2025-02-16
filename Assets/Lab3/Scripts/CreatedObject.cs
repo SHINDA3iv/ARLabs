@@ -2,34 +2,41 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class CreatedObject : MonoBehaviour
+namespace Lab3
 {
-    [SerializeField] private string _displayName;
-    [SerializeField] private string _description;
-
-    private int _number = -1;
-
-    public string Name {
-        get {
-            if (_number >= 0)
-            {
-                return _displayName + " " + _number.ToString();
-            }
-            else
-            {
-                return _displayName;
-            }
-        }
-    }
-
-    public string Description {
-        get {
-            return _description;
-        }
-    }
-
-    public void GiveNumber(int number)
+    public class CreatedObject : MonoBehaviour
     {
-        _number = number;
+        [SerializeField] private string _displayName;
+        [SerializeField] private string _description;
+
+        private int _number = -1;
+
+        public string Name
+        {
+            get
+            {
+                if (_number >= 0)
+                {
+                    return _displayName + " " + _number.ToString();
+                }
+                else
+                {
+                    return _displayName;
+                }
+            }
+        }
+
+        public string Description
+        {
+            get
+            {
+                return _description;
+            }
+        }
+
+        public void GiveNumber(int number)
+        {
+            _number = number;
+        }
     }
 }

@@ -18,6 +18,7 @@ namespace Lab3
         private Dictionary<int, bool> _createdObjects = new Dictionary<int, bool>();
 
         private int _spawnedObjectType = -1;
+        private int _spawnedObjectCount = 0;
         private GameObject _targetMarker;
 
         private void Start()
@@ -115,6 +116,11 @@ namespace Lab3
                 position: spawnPosition,
                 rotation: _spawnedObjectPrefabs[_spawnedObjectType].transform.rotation
             );
+
+            CreatedObject objectDescrition = spawnedObject.GetComponent<CreatedObject>();
+            if (objectDescrition != null)
+                throw new MissingComponentException(spawnedObject.name + "missing CreatedObject");
+            objectDescrition.GiveNumber(++_spawnedObjectCount);
 
             ObjectTracker.Instance.RegisterObject(spawnedObject);
 

@@ -12,9 +12,10 @@ GameObject:
   - component: {fileID: 7154285826725341269}
   - component: {fileID: 687288238397252364}
   - component: {fileID: 4725391153098325904}
+  - component: {fileID: 3018120181040192950}
   m_Layer: 0
   m_Name: Red Cube
-  m_TagString: RedCube
+  m_TagString: CreatedObject
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -105,3 +106,17 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &3018120181040192950
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3253248111722309414}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 454940b67bb334e4a8a443daa3aef7a1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _displayName: "\u041A\u0440\u0430\u0441\u043D\u044B\u0439 \u043A\u0443\u0431"
+  _description: "\u0420\u043E\u0437\u043E\u0432\u044B\u0439 \u043A\u0432\u0430\u0434\u0440\u0430\u0442"

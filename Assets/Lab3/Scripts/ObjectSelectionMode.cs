@@ -3,68 +3,71 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 
-public class ObjectSelectionMode : MonoBehaviour, IInteractionManagerMode
+namespace Lab3
 {
-    [SerializeField] private GameObject _ui;
-    [SerializeField] private GameObject _descriptionPanel;
-    [SerializeField] private TMP_Text _objectTitleText;
-    [SerializeField] private TMP_Text _objectDescriptionText;
-
-    public void Activate()
+    public class ObjectSelectionMode : MonoBehaviour, IInteractionManagerMode
     {
-        _ui.SetActive(true);
-        _descriptionPanel.SetActive(false);
-    }
+        [SerializeField] private GameObject _ui;
+        [SerializeField] private GameObject _descriptionPanel;
+        [SerializeField] private TMP_Text _objectTitleText;
+        [SerializeField] private TMP_Text _objectDescriptionText;
 
-    public void Deactivate()
-    {
-        _descriptionPanel.SetActive(false);
-        _ui.SetActive(false);
-    }
-
-    public void BackToDefaultScreen()
-    {
-        InteractionManager.Instance.SelectMode(0);
-    }
-
-    public void TouchInteraction(Touch[] touches)
-    {
-        Touch touch = touches[0];
-        bool overUI = touch.position.IsPointOverUIObject();
-
-        if (touch.phase == TouchPhase.Began)
+        public void Activate()
         {
-            if (!overUI)
+            _ui.SetActive(true);
+            _descriptionPanel.SetActive(false);
+        }
+
+        public void Deactivate()
+        {
+            _descriptionPanel.SetActive(false);
+            _ui.SetActive(false);
+        }
+
+        public void BackToDefaultScreen()
+        {
+            InteractionManager.Instance.SelectMode(0);
+        }
+
+        public void TouchInteraction(Touch[] touches)
+        {
+            Touch touch = touches[0];
+            bool overUI = touch.position.IsPointOverUIObject();
+
+            if (touch.phase == TouchPhase.Began)
             {
-                TrySelectObject(touch.position);
+                if (!overUI)
+                {
+                    TrySelectObject(touch.position);
+                }
             }
         }
-    }
 
-    private void TrySelectObject(Vector2 pos)
-    {
-        // fire a ray from camera to the target screen position
-        Ray ray = InteractionManager.Instance.ARCamera.ScreenPointToRay(pos);
-        RaycastHit hitObject;
-        if (!Physics.Raycast(ray, out hitObject))
-            return;
+        private void TrySelectObject(Vector2 pos)
+        {
+            // fire a ray from camera to the target screen position
+            Ray ray = InteractionManager.Instance.ARCamera.ScreenPointToRay(pos);
+            RaycastHit hitObject;
+            if (!Physics.Raycast(ray, out hitObject))
+                return;
 
-        if (!hitObject.collider.CompareTag("CreatedObject"))
-            return;
+            if (!hitObject.collider.CompareTag("CreatedObject"))
+                return;
 
-        // if we hit a spawned object tag, try to get info from it
-        GameObject selectedObject = hitObject.collider.gameObject;
-        CreatedObject objectDescription = selectedObject.GetComponent<CreatedObject>();
-        if (!objectDescription)
-            throw new MissingComponentException("[OBJECT_SELECTION_MODE] " + selectedObject.name + " has no description!");
+            // if we hit a spawned object tag, try to get info from it
+            GameObject selectedObject = hitObject.collider.gameObject;
+            CreatedObject objectDescription = selectedObject.GetComponent<CreatedObject>();
+            if (!objectDescription)
+                throw new MissingComponentException("[OBJECT_SELECTION_MODE] " + selectedObject.name + " has no description!");
 
-        ShowObjectDescription(objectDescription);
-    }
+            ShowObjectDescription(objectDescription);
+        }
 
-    private void ShowObjectDescription(CreatedObject targetObject)
-    {
-        _objectTitleText.text = targetObject.Name;
-        _objectDescriptionText.text = targetObject.Description;
-        _descriptionPanel.SetActive(true);
+        private void ShowObjectDescription(CreatedObject targetObject)
+        {
+            _objectTitleText.text = targetObject.Name;
+            _objectDescriptionText.text = targetObject.Description;
+            _descriptionPanel.SetActive(true);
+        }
     }
 }
