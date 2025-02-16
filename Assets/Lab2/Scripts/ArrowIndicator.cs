@@ -96,43 +96,41 @@ namespace Lab2
             if (!_activeArrows.ContainsKey(target)) return;
 
             Vector3 targetScreenPos = _mainCamera.WorldToScreenPoint(target.transform.position);
-
-            if (targetScreenPos.z < 0)
-            {
-                targetScreenPos.z = 0.1f;
-                targetScreenPos.x = Screen.width - targetScreenPos.x;
-                targetScreenPos.y = Screen.height - targetScreenPos.y;
-            }
-
             Vector3 screenCenter = new Vector3(Screen.width / 2, Screen.height / 2, 0);
             Vector3 direction = (targetScreenPos - screenCenter).normalized;
 
+            // Разворачиваем направление, если объект за камерой
+            if (targetScreenPos.z < 0)
+            {
+                direction = -direction;
+            }
+
             float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
 
-            float arrowDistance;
-            if (Mathf.Abs(angle) < 120 && Mathf.Abs(angle) > 60)
+            // Вычисляем границы экрана
+            float borderX = Screen.width / 2 * 0.9f;
+            float borderY = Screen.height / 2 * 0.9f;
+
+            float arrowX = borderX * Mathf.Sign(direction.x);
+            float arrowY = arrowX * Mathf.Tan(angle * Mathf.Deg2Rad);
+
+            if (Mathf.Abs(arrowY) > borderY)
             {
-                arrowDistance = Screen.height / 2 * 0.9f;
-            }
-            else
-            {
-                arrowDistance = Screen.width / 2 * 0.9f;
+                arrowY = borderY * Mathf.Sign(direction.y);
+                arrowX = arrowY / Mathf.Tan(angle * Mathf.Deg2Rad);
             }
 
-            // Позиция стрелки с ограничением по экранам
-            Vector3 arrowPos = screenCenter + direction * arrowDistance;
+            Vector3 arrowPos = screenCenter + new Vector3(arrowX, arrowY, 0);
 
-            // Ограничиваем позицию стрелки в пределах экрана
+            // Ограничиваем позицию в пределах экрана
             arrowPos.x = Mathf.Clamp(arrowPos.x, 0, Screen.width);
             arrowPos.y = Mathf.Clamp(arrowPos.y, 0, Screen.height);
 
             GameObject arrow = _activeArrows[target];
             arrow.transform.position = arrowPos;
-
-            // Поворот
             arrow.transform.rotation = Quaternion.Euler(0, 0, angle);
-            Debug.Log(angle);
         }
+
 
 
         private GameObject GetArrowForObject(GameObject target)
