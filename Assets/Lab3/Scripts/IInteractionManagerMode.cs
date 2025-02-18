@@ -4,10 +4,10 @@ using UnityEngine;
 
 namespace Lab3
 {
-public interface IInteractionManagerMode
-{
-    public void Activate();
-    public void Deactivate();
-    public void TouchInteraction(Touch[] touches);
-}
+    public interface IInteractionManagerMode
+    {
+        public void Activate();
+        public void Deactivate();
+        public void TouchInteraction(Touch[] touches);
+    }
 }
