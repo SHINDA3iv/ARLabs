@@ -1,28 +1,29 @@
-using System.Collections;
-using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
-using UnityEngine.XR.ARFoundation;
-using UnityEngine.XR.ARSubsystems;
+using Lean.Touch;
 
 namespace Lab4
 {
     public class ObjectSelectionMode : MonoBehaviour, IInteractionManagerMode
     {
-        [Tooltip("UI objects to disable")]
         [SerializeField] private GameObject _ui;
         [SerializeField] private GameObject _descriptionPanel;
         [SerializeField] private TMP_Text _objectTitleText;
         [SerializeField] private TMP_Text _objectDescriptionText;
+        [SerializeField] private GameObject[] scaleMarkers = new GameObject[3];
 
         private CreatedObject _selectedObject = null;
-        private bool _needResetTouch = false;
+        private char _activeAxis = ' ';
+        private float _initialScaleDistance;
+        private Vector3 _initialScale;
+        private bool isSwiping = false;
 
         public void Activate()
         {
             _ui.SetActive(true);
             _descriptionPanel.SetActive(false);
             _selectedObject = null;
+            isSwiping = false;
         }
 
         public void Deactivate()
@@ -30,6 +31,33 @@ namespace Lab4
             _descriptionPanel.SetActive(false);
             _ui.SetActive(false);
             _selectedObject = null;
+            HideScaleMarkers();
+            isSwiping = false;
+        }
+
+        private void OnEnable()
+        {
+            LeanTouch.OnFingerSwipe += OnSwipeLeft;
+        }
+
+        private void OnDisable()
+        {
+            LeanTouch.OnFingerSwipe -= OnSwipeLeft;
+        }
+
+        private void OnSwipeLeft(LeanFinger finger)
+        {
+            if ((finger.LastScreenPosition - finger.StartScreenPosition).x < 0)
+            {
+                isSwiping = true;
+                ResetObjectToInitialState();
+                Invoke(nameof(ResetSwipeFlag), 0.3f);
+            }
+        }
+
+        private void ResetSwipeFlag()
+        {
+            isSwiping = false;
         }
 
         public void BackToDefaultScreen()
@@ -39,60 +67,80 @@ namespace Lab4
 
         public void TouchInteraction(Touch[] touches)
         {
-            Touch touch = touches[0];
-            bool overUI = touch.position.IsPointOverUIObject();
+            if (isSwiping) return;
 
-            // this is added due to the fact that when we selected an object, we don't want to manipulate it immediately
-            // we will wait until first touch becomes Ended or Canceled, then touch interactions will work properly
-            if (_needResetTouch)
+            // Обработка одного касания
+            if (touches.Length == 1 && touches[0].phase == TouchPhase.Began)
             {
-                if (touch.phase == TouchPhase.Ended || touch.phase == TouchPhase.Canceled)
-                    _needResetTouch = false;
-                else
-                    return;
+                TrySelectObject(touches[0].position);
+                return;
             }
 
-            if (_selectedObject == null)
+            if (touches.Length == 1)
             {
-                if (touch.phase != TouchPhase.Began || overUI)
-                    return;
-
-                TrySelectObject(touch.position);
-                _needResetTouch = true;
+                MoveSelectedObject(touches[0]);
             }
-            else
+            else if (touches.Length == 2)
             {
-                // if there is a selected object, our logic changes according to the number of touches
-                // if we touch screen with one finger, it's movement
-                if (touches.Length == 1)
+                if (touches[0].phase == TouchPhase.Moved || touches[1].phase == TouchPhase.Moved)
                 {
-                    MoveSelectedObject(touch);
+                    ScaleObject(touches);
                 }
-                // if we touch screen with two fingers, it's rotation
-                else if (touches.Length == 2)
+
+                Touch secondTouch = (touches[0].deltaTime < touches[1].deltaTime) ? touches[0] : touches[1];
+
+                if (secondTouch.phase == TouchPhase.Began)
                 {
-                    //RotateSelectedObject(touch, touches[1]);
+                    ShowScaleMarkers(secondTouch.position);
                 }
+                else if (secondTouch.phase == TouchPhase.Moved)
+                {
+                    if (_activeAxis != ' ')
+                        return;
+
+                    DetectAxisSelection(secondTouch);
+                }
+                else if (secondTouch.phase == TouchPhase.Ended)
+                {
+                    HideScaleMarkers();
+                    _activeAxis = ' ';
+                }
+            }
+
+            if (touches.Length != 2)
+            {
+                HideScaleMarkers();
+                _activeAxis = ' ';
             }
         }
 
         private void TrySelectObject(Vector2 pos)
         {
-            // fire a ray from camera to the target screen position
+            if (isSwiping) return;
+
             Ray ray = InteractionManager.Instance.ARCamera.ScreenPointToRay(pos);
             RaycastHit hitObject;
+
             if (!Physics.Raycast(ray, out hitObject))
                 return;
 
             if (!hitObject.collider.CompareTag("CreatedObject"))
                 return;
 
-            // if we hit a spawned object tag, try to get info from it
             GameObject selectedObject = hitObject.collider.gameObject;
-            _selectedObject = selectedObject.GetComponent<CreatedObject>();
-            if (!_selectedObject)
+            CreatedObject newSelectedObject = selectedObject.GetComponent<CreatedObject>();
+
+            if (!newSelectedObject)
                 throw new MissingComponentException("[OBJECT_SELECTION_MODE] " + selectedObject.name + " has no description!");
 
+            if (_selectedObject != null && _selectedObject != newSelectedObject)
+            {
+                ResetObjectToInitialState();
+            }
+
+            // Выбираем новый объект
+            _selectedObject = newSelectedObject;
+            _selectedObject.SaveInitialState();
             ShowObjectDescription(_selectedObject);
         }
 
@@ -105,28 +153,118 @@ namespace Lab4
 
         private void MoveSelectedObject(Touch touch)
         {
+            if (isSwiping) return;
+
             if (touch.phase != TouchPhase.Moved)
                 return;
 
-            _selectedObject.transform.position = InteractionManager.Instance.GetARRaycastHits(touch.position)[0].pose.position;
+            Ray ray = InteractionManager.Instance.ARCamera.ScreenPointToRay(touch.position);
+            RaycastHit hitObject;
+            if (Physics.Raycast(ray, out hitObject) && hitObject.collider.CompareTag("CreatedObject") &&
+                hitObject.collider.gameObject == _selectedObject.gameObject)
+            {
+                _selectedObject.transform.position = InteractionManager.Instance.GetARRaycastHits(touch.position)[0].pose.position;
+            }
         }
 
-        private void RotateSelectedObject(Touch touch1, Touch touch2)
+        private void ResetObjectToInitialState()
         {
-            if (touch1.phase == TouchPhase.Moved || touch2.phase == TouchPhase.Moved)
+            if (_selectedObject != null)
             {
-                float distance = Vector2.Distance(touch1.position, touch2.position);
-                float distancePrev = Vector2.Distance(touch1.position - touch1.deltaPosition, touch2.position - touch2.deltaPosition);
-                float delta = distance - distancePrev;
-
-                if (Mathf.Abs(delta) > 0.0f)
-                    delta *= 0.1f;
-                else
-                    delta *= -0.1f;
-
-                // when you want to rotate object by angle, multiply its quaternion-type rotation by a rotation angle quaternion
-                _selectedObject.transform.rotation *= Quaternion.Euler(0.0f, delta, 0.0f);
+                _selectedObject.ResetToInitialState();
             }
+        }
+
+        private void ShowScaleMarkers(Vector2 pos)
+        {
+            if (_selectedObject == null) return;
+
+            scaleMarkers[0].transform.position = pos + Vector2.right * 200;
+            scaleMarkers[1].transform.position = pos + Vector2.up * 200;
+            scaleMarkers[2].transform.position = pos + Vector2.left * 100 * Mathf.Sqrt(2) + Vector2.down * 100 * Mathf.Sqrt(2);
+
+            Vector2 touchScreenPosition = InteractionManager.Instance.ARCamera.WorldToScreenPoint(pos);
+            Vector2 markerScreen0Position = InteractionManager.Instance.ARCamera.WorldToScreenPoint(scaleMarkers[0].transform.position);
+            Vector2 markerScreen1Position = InteractionManager.Instance.ARCamera.WorldToScreenPoint(scaleMarkers[1].transform.position);
+            Vector2 markerScreen2Position = InteractionManager.Instance.ARCamera.WorldToScreenPoint(scaleMarkers[2].transform.position);
+
+            Debug.Log("[DETECTED LOG] TOUCH SCREEN POSITION " + pos + " SCREEN " + touchScreenPosition);
+            Debug.Log("[DETECTED LOG] X POSITION " + scaleMarkers[0].transform.position + " SCREEN " + markerScreen0Position + " DISTANCE " + Vector2.Distance(touchScreenPosition, markerScreen0Position));
+            Debug.Log("[DETECTED LOG] Y POSITION " + scaleMarkers[1].transform.position + " SCREEN " + markerScreen1Position + " DISTANCE " + Vector2.Distance(touchScreenPosition, markerScreen1Position));
+            Debug.Log("[DETECTED LOG] Z POSITION " + scaleMarkers[2].transform.position + " SCREEN " + markerScreen2Position + " DISTANCE " + Vector2.Distance(touchScreenPosition, markerScreen2Position));
+
+            foreach (var marker in scaleMarkers)
+            {
+                marker.SetActive(true);
+            }
+        }
+
+        private void HideScaleMarkers()
+        {
+            foreach (var marker in scaleMarkers)
+            {
+                marker.SetActive(false);
+            }
+        }
+
+        private void DetectAxisSelection(Touch touch)
+        {
+            foreach (var marker in scaleMarkers)
+            {
+                if (Vector2.Distance(touch.position, marker.transform.position) < 25)
+                {
+                    if (marker == scaleMarkers[0]) _activeAxis = 'X';
+                    else if (marker == scaleMarkers[1]) _activeAxis = 'Y';
+                    else if (marker == scaleMarkers[2]) _activeAxis = 'Z';
+
+                    HideScaleMarkers();
+
+                    _initialScaleDistance = Vector2.Distance(Input.touches[0].position, Input.touches[1].position);
+                    _initialScale = _selectedObject.transform.localScale;
+
+                    return;
+                }
+            }
+        }
+
+        private void ScaleObject(Touch[] touches)
+        {
+            if (_selectedObject == null || _activeAxis == ' ') return;
+
+            float currentDistance = Vector2.Distance(touches[0].position, touches[1].position);
+
+            float scaleFactor = currentDistance / _initialScaleDistance;
+
+            Vector3 newScale = _selectedObject.transform.localScale;
+
+            if (_activeAxis == 'X')
+            {
+                newScale.x = Mathf.Max(0.1f, _initialScale.x * scaleFactor);
+            }
+            else if (_activeAxis == 'Y')
+            {
+                newScale.y = Mathf.Max(0.1f, _initialScale.y * scaleFactor);
+            }
+            else if (_activeAxis == 'Z')
+            {
+                newScale.z = Mathf.Max(0.1f, _initialScale.z * scaleFactor);
+            }
+
+            _selectedObject.transform.localScale = newScale;
+        }
+
+        private void ClearSelection()
+        {
+            if (_selectedObject != null)
+            {
+                _selectedObject.transform.localScale = Vector3.one;
+
+                HideScaleMarkers();
+
+                _selectedObject = null;
+            }
+
+            _descriptionPanel.SetActive(false);
         }
     }
 }

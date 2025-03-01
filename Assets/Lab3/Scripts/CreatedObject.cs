@@ -67,6 +67,7 @@ namespace Lab3
                 yield return null;
             }
             transform.localScale = targetScale;
+            transform.Rotate(Vector3.up, 20 * Time.deltaTime);
         }
     }
 }

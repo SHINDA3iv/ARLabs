@@ -49,21 +49,20 @@ namespace Lab3
         {
             Ray ray = InteractionManager.Instance.ARCamera.ScreenPointToRay(pos);
             if (Physics.Raycast(ray, out RaycastHit hitObject))
+                return;
+            if (!hitObject.collider.CompareTag("CreatedObject"))
+                return;
+
+            GameObject selectedGameObject = hitObject.collider.gameObject;
+            CreatedObject newObject = selectedGameObject.GetComponent<CreatedObject>();
+            if (!newObject)
+                throw new MissingComponentException($"[OBJECT_SELECTION_MODE] {selectedGameObject.name} не имеет компонента CreatedObject!");
+
+            if (_selectedObject != newObject)
             {
-                if (!hitObject.collider.CompareTag("CreatedObject"))
-                    return;
-
-                GameObject selectedGameObject = hitObject.collider.gameObject;
-                CreatedObject newObject = selectedGameObject.GetComponent<CreatedObject>();
-                if (!newObject)
-                    throw new MissingComponentException($"[OBJECT_SELECTION_MODE] {selectedGameObject.name} не имеет компонента CreatedObject!");
-
-                if (_selectedObject != newObject)
-                {
-                    DeselectCurrentObject();
-                    _selectedObject = newObject;
-                    ShowObjectDescription(newObject);
-                }
+                DeselectCurrentObject();
+                _selectedObject = newObject;
+                ShowObjectDescription(newObject);
             }
         }
 
