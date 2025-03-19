@@ -1,0 +1,75 @@
+### Общие исключения ###
+# Игнорировать системные файлы и настройки IDE
+[Ll]ibrary/
+[Tt]emp/
+[Oo]bj/
+[Bb]uild/
+[Bb]uilds/
+[Ll]ogs/
+[Mm]emoryCaptures/
+
+# Игнорировать файлы автосохранения Unity
+/[Aa]ssets/Plugins/Editor/*/*.cs.meta
+
+# Игнорировать пользовательские настройки
+UserSettings/
+*.swp
+*.lock
+*.tmp
+*.bak
+*.pid
+*.suo
+*.user
+*.userprefs
+
+# Игнорировать файлы проекта, специфичные для конкретного пользователя или IDE
+*.csproj
+*.unityproj
+*.sln
+*.sln.DotSettings
+
+### Исключения, связанные с Unity ###
+# Игнорировать файлы, генерируемые Unity
+/Assets/StreamingAssets/UnityAnalytics/
+/[Aa]ssets/AddressableAssetsData/AssetGroups/*.bin*
+/[Aa]ddressables_content_state.bin
+
+# Игнорировать папку .vs (Visual Studio)
+.vs/
+
+# Игнорировать локальные настройки Unity
+LocalSettings.json
+
+# Игнорировать файлы билда
+/[Bb]uilds/*
+
+### Исключения, специфичные для операционных систем ###
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+Desktop.ini
+
+### Дополнительные исключения ###
+# Игнорировать временные файлы Unity
+/ProjectSettings/AssetDatabase*
+/ProjectSettings/Library*
+
+# Игнорировать файлы плагинов, если они автоматически обновляются
+/[Aa]ssets/Plugins/*/*.dll
+/[Aa]ssets/Plugins/*/*.mdb
+
+# Игнорировать файлы тестирования
+/TestResults/
+CoverageResults/
+
+# Игнорировать файлы NuGet
+/packages/
+
+# Игнорировать файлы документации
+/docs/
+/doc/
+
+# Игнорировать файлы, создаваемые сторонними инструментами
+*.meta~
