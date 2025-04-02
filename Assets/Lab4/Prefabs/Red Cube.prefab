@@ -1,3 +1,17 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
 --- !u!1 &3253248111722309414
@@ -12,7 +26,7 @@ GameObject:
   - component: {fileID: 7154285826725341269}
   - component: {fileID: 687288238397252364}
   - component: {fileID: 4725391153098325904}
-  - component: {fileID: 7559280461383984659}
+  - component: {fileID: -8713981087219760925}
   m_Layer: 0
   m_Name: Red Cube
   m_TagString: CreatedObject
@@ -106,7 +120,7 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
---- !u!114 &7559280461383984659
+--- !u!114 &-8713981087219760925
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}

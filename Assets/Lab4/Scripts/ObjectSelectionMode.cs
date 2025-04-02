@@ -1,3 +1,22 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 using TMPro;
 using UnityEngine;
 using Lean.Touch;
@@ -17,6 +36,7 @@ namespace Lab4
         private float _initialScaleDistance;
         private Vector3 _initialScale;
         private bool isSwiping = false;
+        private bool _isMovingObject = false;
 
         public void Activate()
         {
@@ -47,6 +67,8 @@ namespace Lab4
 
         private void OnSwipeLeft(LeanFinger finger)
         {
+            if (_isMovingObject || Input.touchCount > 1) return;
+
             if ((finger.LastScreenPosition - finger.StartScreenPosition).x < 0)
             {
                 isSwiping = true;
@@ -79,6 +101,9 @@ namespace Lab4
             if (touches.Length == 1)
             {
                 MoveSelectedObject(touches[0]);
+
+                if (touches[0].phase == TouchPhase.Ended)
+                    _isMovingObject = false;
             }
             else if (touches.Length == 2)
             {
@@ -116,8 +141,6 @@ namespace Lab4
 
         private void TrySelectObject(Vector2 pos)
         {
-            if (isSwiping) return;
-
             Ray ray = InteractionManager.Instance.ARCamera.ScreenPointToRay(pos);
             RaycastHit hitObject;
 
@@ -133,12 +156,8 @@ namespace Lab4
             if (!newSelectedObject)
                 throw new MissingComponentException("[OBJECT_SELECTION_MODE] " + selectedObject.name + " has no description!");
 
-            if (_selectedObject != null && _selectedObject != newSelectedObject)
-            {
-                ResetObjectToInitialState();
-            }
-
             // Выбираем новый объект
+            _isMovingObject = true;
             _selectedObject = newSelectedObject;
             _selectedObject.SaveInitialState();
             ShowObjectDescription(_selectedObject);
@@ -153,24 +172,35 @@ namespace Lab4
 
         private void MoveSelectedObject(Touch touch)
         {
-            if (isSwiping) return;
-
-            if (touch.phase != TouchPhase.Moved)
+            if (touch.phase != TouchPhase.Moved || _isMovingObject == false)
                 return;
 
-            Ray ray = InteractionManager.Instance.ARCamera.ScreenPointToRay(touch.position);
-            RaycastHit hitObject;
-            if (Physics.Raycast(ray, out hitObject) && hitObject.collider.CompareTag("CreatedObject") &&
-                hitObject.collider.gameObject == _selectedObject.gameObject)
-            {
-                _selectedObject.transform.position = InteractionManager.Instance.GetARRaycastHits(touch.position)[0].pose.position;
-            }
+            Debug.Log("[OBJECT_SELECTION_MODE] moved");
+            _selectedObject.transform.position = InteractionManager.Instance.GetARRaycastHits(touch.position)[0].pose.position;
+
+            //Ray ray = InteractionManager.Instance.ARCamera.ScreenPointToRay(touch.position);
+            //RaycastHit[] hits = Physics.RaycastAll(ray);
+
+            //foreach (RaycastHit hit in hits)
+            //{
+            //    Debug.Log("[OBJECT_SELECTION_MODE] " + hit.collider.tag);
+            //    if (hit.collider.CompareTag("CreatedObject") &&
+            //        hit.collider.gameObject == _selectedObject.gameObject)
+            //    {
+            //        _isMovingObject = true;
+            //        Debug.Log("[OBJECT_SELECTION_MODE] moved");
+            //        _selectedObject.transform.position = InteractionManager.Instance.GetARRaycastHits(touch.position)[0].pose.position;
+            //        return;
+            //    }
+            //}
+
         }
 
         private void ResetObjectToInitialState()
         {
             if (_selectedObject != null)
             {
+                Debug.Log("[OBJECT_SELECTION_MODE] reset");
                 _selectedObject.ResetToInitialState();
             }
         }
@@ -211,7 +241,7 @@ namespace Lab4
         {
             foreach (var marker in scaleMarkers)
             {
-                if (Vector2.Distance(touch.position, marker.transform.position) < 25)
+                if (Vector2.Distance(touch.position, marker.transform.position) < 50)
                 {
                     if (marker == scaleMarkers[0]) _activeAxis = 'X';
                     else if (marker == scaleMarkers[1]) _activeAxis = 'Y';

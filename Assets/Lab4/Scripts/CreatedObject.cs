@@ -1,3 +1,18 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -13,7 +28,6 @@ namespace Lab4
         private int _number = -1;
 
         // Добавляем переменные для сохранения исходной позиции и масштаба
-        public Vector3 InitialPosition { get; private set; }
         public Vector3 InitialLocalScale { get; private set; }
 
         public string Name
@@ -44,18 +58,18 @@ namespace Lab4
             _number = number;
         }
 
-        // Метод для сохранения исходных данных объекта
         public void SaveInitialState()
         {
-            InitialPosition = transform.position;
             InitialLocalScale = transform.localScale;
+            Debug.Log("[OBJECT_SELECTION_MODE] " + InitialLocalScale);
         }
 
-        // Метод для возврата объекта в исходное состояние
         public void ResetToInitialState()
         {
-            transform.position = InitialPosition;
             transform.localScale = InitialLocalScale;
+            Debug.Log("[OBJECT_SELECTION_MODE] " + transform.localScale);
         }
     }
 }
+
+

@@ -1,3 +1,17 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
 --- !u!1 &3652599934626002354
@@ -12,7 +26,7 @@ GameObject:
   - component: {fileID: 571777630384159507}
   - component: {fileID: 1738914509359855621}
   - component: {fileID: 350481483128901094}
-  - component: {fileID: 1764876469793544409}
+  - component: {fileID: -8330513937813877299}
   m_Layer: 0
   m_Name: Green Sphere
   m_TagString: CreatedObject
@@ -106,7 +120,7 @@ SphereCollider:
   serializedVersion: 3
   m_Radius: 0.5
   m_Center: {x: 0, y: 0, z: 0}
---- !u!114 &1764876469793544409
+--- !u!114 &-8330513937813877299
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -115,7 +129,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 3652599934626002354}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 454940b67bb334e4a8a443daa3aef7a1, type: 3}
+  m_Script: {fileID: 11500000, guid: 637a2ef2f18d8b449aff2b09bc3d98b2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   _displayName: "\u0417\u0435\u043B\u0435\u043D\u044B\u0439 \u0448\u0430\u0440"

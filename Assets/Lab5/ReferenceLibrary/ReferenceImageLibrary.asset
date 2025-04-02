@@ -1,0 +1,39 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 848409ee8ba454f42a5ddff137688a27, type: 3}
+  m_Name: ReferenceImageLibrary
+  m_EditorClassIdentifier: 
+  m_GuidLow: 4616184587829060773
+  m_GuidHigh: 16185092351612915605
+  m_DataStore:
+    m_Storage: []
+  m_Images:
+  - m_SerializedGuid:
+      m_GuidLow: 4711381137354144379
+      m_GuidHigh: 2801169552166035625
+    m_SerializedTextureGuid:
+      m_GuidLow: 5153475971878003167
+      m_GuidHigh: 9914515253440593929
+    m_Size: {x: 0.11, y: 0.17534247}
+    m_SpecifySize: 1
+    m_Name: photo_2025-03-01_18-37-04
+    m_Texture: {fileID: 2800000, guid: 964ca1dfd317478409c084f9176f9789, type: 3}
+  - m_SerializedGuid:
+      m_GuidLow: 5572613289635719259
+      m_GuidHigh: 10456735181807903422
+    m_SerializedTextureGuid:
+      m_GuidLow: 14097624897776290476
+      m_GuidHigh: 12959656656830365753
+    m_Size: {x: 0.1, y: 0.12586038}
+    m_SpecifySize: 1
+    m_Name: photo_2025-03-01_18-37-08
+    m_Texture: {fileID: 2800000, guid: f0a88aacd326c3a4398066f110f3d9b3, type: 3}
